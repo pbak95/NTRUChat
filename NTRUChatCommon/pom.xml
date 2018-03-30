@@ -9,14 +9,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>NTRUChat-Library</artifactId>
-
-    <properties>
-        <src.dir>src/com</src.dir>
-    </properties>
-    <build>
-        <sourceDirectory>${src.dir}</sourceDirectory>
-    </build>
+    <artifactId>NTRUChat-Common</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
 
 </project>

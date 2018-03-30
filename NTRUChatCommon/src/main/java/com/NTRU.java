@@ -249,7 +249,7 @@ public class NTRU
 
 
     /**
-     * Creates a com.securityinnovation.jNeo.Random object seeded with entropy from
+     * Creates a Random object seeded with entropy from
      * java.util.Random.
      */
     static Random createSeededRandom()

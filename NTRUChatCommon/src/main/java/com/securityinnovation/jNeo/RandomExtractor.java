@@ -24,7 +24,7 @@ import com.securityinnovation.jNeo.inputstream.X982Drbg;
 
 /**
  * This class provides hooks to extract the X982 DRBG from a
- * com.securityinnovation.jNeo.Random object. 
+ * Random object.
  */
 public class RandomExtractor
 {

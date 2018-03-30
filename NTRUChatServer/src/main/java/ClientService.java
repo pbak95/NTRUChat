@@ -1,7 +1,5 @@
-package main.java;
-
-import main.java.communication.Message;
-import main.java.communication.Protocol;
+import communication.Message;
+import communication.Protocol;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -22,19 +20,32 @@ public class ClientService implements Runnable {
     public ClientService(Socket clientSocket, ChatServer server) {
         this.clientSocket = clientSocket;
         this.server = server;
+        initializeStreams();
+        run();
     }
 
     @Override
     public void run() {
-
+        writeMessage(new Message(Protocol.INFO_CONNECTED, "", "", ""));
         while (true) {
             try {
                 Message message = (Message) inputStream.readObject();
 
-                if (message.getMessageType().equals(Protocol.REGISTER)) {
-
-                } else if(message.getMessageType().equals(Protocol.COMMUNICATION)) {
-
+                if (message.getMessageType().equals(Protocol.INFO_REGISTER)) {
+                    boolean isConnected = server.connectClient(message.getContent(), this);
+                    if (!isConnected) {
+                        writeMessage(new Message(Protocol.ERROR_NO_SUCH_CLIENT_ID, "", "",
+                                "There is not client with such identifier"));
+                    }
+                } else if (message.getMessageType().equals(Protocol.CONVERSATION)) {
+                    boolean isSent = server.sendMessageToClient(message);
+                    if (!isSent) {
+                        writeMessage(new Message(Protocol.ERROR_MESSAGE_NOT_SENT, "", "",
+                                "Message not sent, your friend is offline"));
+                    }
+                } else if (message.getMessageType().equals(Protocol.INFO_LOGOUT)) {
+                    server.logout(message);
+                    break;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -55,7 +66,7 @@ public class ClientService implements Runnable {
         }
     }
 
-    private void initializeStreans() {
+    private void initializeStreams() {
         try {
             this.inputStream = new ObjectInputStream(clientSocket.getInputStream());
             this.outputStream = new ObjectOutputStream(clientSocket.getOutputStream());

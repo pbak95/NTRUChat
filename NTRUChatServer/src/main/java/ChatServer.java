@@ -1,14 +1,14 @@
-package main.java;
+import communication.Message;
+import logger.SimpleLogger;
 
-import main.java.communication.Message;
-import main.java.logger.SimpleLogger;
-
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
+import java.net.Socket;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Created by Patryk on 30.03.2018.
@@ -18,36 +18,76 @@ public class ChatServer implements Runnable {
     // Server port
     private final int SERVER_PORT = 2222;
 
-    // The server socket for broadcast.
+    private static final String DB_PATH = "D:\\studia\\RAOI\\NTRUChat\\" +
+            "NTRUChat\\NTRUChatServer\\src\\main\\resources\\clientsDB.properties";
+
     private ServerSocket serverSocket = null;
 
     private Map<String, ClientService> connectedClients;
 
+    private ConcurrentHashMap<String, Map<String, Boolean>> inMemoryDatabase;
+
     private SimpleLogger logger;
 
     public ChatServer() {
-        connectedClients = new HashMap<>();
         logger = SimpleLogger.getInstance();
+        initializeServer();
+        initializeClients();
         run();
     }
 
     @Override
     public void run() {
-
+        ThreadFactory clientThreads = Executors.defaultThreadFactory();
+        try {
+            while (true) {
+                Socket client = serverSocket.accept();
+                clientThreads.newThread(new ClientService(client, this));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public synchronized void registerClient(String clientID, ClientService clientService) {
+    public synchronized boolean connectClient(String clientID, ClientService clientService) {
+        if (!inMemoryDatabase.keySet().contains(clientID))
+            return false;
         connectedClients.put(clientID, clientService);
+        setClientStatus(clientID, true);
+        logger.logMessage("Client " + clientID + " connected");
+        return true;
     }
 
-    public synchronized void sendMessageToClient(String clientID, Message message) {
-        connectedClients.get(clientID).writeMessage(message);
+    public synchronized void logout(Message message) {
+        String clientID = message.getContent();
+        if (inMemoryDatabase.keySet().contains(clientID)) {
+            connectedClients.remove(clientID);
+            setClientStatus(clientID, false);
+            logger.logMessage("Client " + clientID + " disconnected");
+        }
+    }
+
+    public synchronized boolean sendMessageToClient(Message message) {
+        if (!connectedClients.keySet().contains(message.getRecipient())) {
+            return false;
+        }
+        connectedClients.get(message.getRecipient()).writeMessage(message);
+        return true;
+    }
+
+    private void setClientStatus(String clientID, boolean status) {
+        Map<String, Boolean> friends = inMemoryDatabase.get(clientID);
+        for(Map.Entry<String, Boolean> entry : friends.entrySet()) {
+            inMemoryDatabase.get(entry.getKey()).put(clientID, status);
+        }
     }
 
     private void initializeServer() {
         logger.logMessage("Starting server on port: " + SERVER_PORT);
         try {
             serverSocket = new ServerSocket(SERVER_PORT);
+            inMemoryDatabase = new ConcurrentHashMap<>();
+            connectedClients = new HashMap<>();
             logger.logMessage("Server started successfully");
         } catch (IOException e) {
             e.printStackTrace();
@@ -55,12 +95,26 @@ public class ChatServer implements Runnable {
     }
 
     private void initializeClients() {
-        //readClientsFromFile
+        Properties properties = new Properties();
+        try {
+            properties.load(new FileInputStream(DB_PATH));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        properties.forEach((client, value) -> {
+            String[] clientProperty = client.toString().split("\\.");
+            String[] friendsProperty = value.toString().split("\\|");
+            Map<String, Boolean> fiendsToDB = new HashMap<>();
+            for (int i = 0; i < friendsProperty.length; i++) {
+                fiendsToDB.put(friendsProperty[i], false);
+            }
+            //last string from clientProperty is ID
+            inMemoryDatabase.put(clientProperty[clientProperty.length - 1], fiendsToDB);
+        });
+
     }
 
     public static void main(String args[]) {
-
-        //new ChatServer();
-
+        new ChatServer();
     }
 }

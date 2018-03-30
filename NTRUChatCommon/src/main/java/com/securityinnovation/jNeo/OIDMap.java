@@ -23,7 +23,7 @@ package com.securityinnovation.jNeo;
 
 /**
  * This class exists to provide access to the
- * com.securityinnovation.jNeo.OID.getOIDBytes() method that has package-scope.
+ * OID.getOIDBytes() method that has package-scope.
  *
  * <p>The problem this class is trying to solve is to provide access
  * to the OID.getOIDBytes() throughout the jNeo package and

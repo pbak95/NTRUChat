@@ -62,7 +62,7 @@ public class NtruEncryptKey
 
     /**
      * Generate a new keypair for the specified parameter set.
-     * (see com.securityinnovation.jNeo.OID for a list of parameter set identifiers).
+     * (see OID for a list of parameter set identifiers).
      */
     public static NtruEncryptKey genKey(
         OID          oid,

@@ -1,4 +1,4 @@
-package main.java; /******************************************************************************
+/******************************************************************************
  * NTRU Cryptography Reference Source Code
  *
  * Copyright (C) 2009-2016  Security Innovation (SI)
@@ -249,7 +249,7 @@ public class NTRU
 
 
     /**
-     * Creates a com.securityinnovation.jNeo.Random object seeded with entropy from
+     * Creates a Random object seeded with entropy from
      * java.util.Random.
      */
     static Random createSeededRandom()
