@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
@@ -25,6 +26,10 @@ public class ChatServer implements Runnable {
 
     private Map<String, ClientService> connectedClients;
 
+    /*
+        this is in memory database, first key is clientID(user), map associated with this key is
+        <friendID(user's friend), status(online or not)>
+     */
     private ConcurrentHashMap<String, Map<String, Boolean>> inMemoryDatabase;
 
     private SimpleLogger logger;
@@ -38,11 +43,14 @@ public class ChatServer implements Runnable {
 
     @Override
     public void run() {
-        ThreadFactory clientThreads = Executors.defaultThreadFactory();
+        ExecutorService service = Executors.newFixedThreadPool(5);
         try {
             while (true) {
                 Socket client = serverSocket.accept();
-                clientThreads.newThread(new ClientService(client, this));
+                logger.logMessage("New connection accepted");
+                service.execute(new ClientService(client, this));
+                //new Thread(new ClientService(client, this)).start();
+                System.out.println("jestem tu czekam na nowe");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -73,6 +81,19 @@ public class ChatServer implements Runnable {
         }
         connectedClients.get(message.getRecipient()).writeMessage(message);
         return true;
+    }
+
+    /*
+        get online friends with which requesting client could chat
+     */
+    public synchronized String getClientFriends(String clientID) {
+        String friendsList = "";
+        Map<String, Boolean> friends = inMemoryDatabase.get(clientID);
+        for(Map.Entry<String, Boolean> entry : friends.entrySet()) {
+            if (entry.getValue())
+                friendsList += entry.getKey() + "\\|";
+        }
+        return friendsList;
     }
 
     private void setClientStatus(String clientID, boolean status) {

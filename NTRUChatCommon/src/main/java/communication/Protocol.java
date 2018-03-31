@@ -6,6 +6,7 @@ package communication;
 public enum Protocol {
     INFO_CONNECTED, //initial message to client to say that it connects successfully
     INFO_REGISTER, //initial message from client to register itself
+    INFO_REGISTER_ACK,
     INFO_LOGOUT,
     INIT_CONVERSATION, //get cipher parameters
     INIT_CONVERSATION_ACK, //return cipher parameters

@@ -1,9 +1,13 @@
 package communication;
 
+import java.io.Serializable;
+
 /**
  * Created by Patryk on 30.03.2018.
  */
-public class Message {
+public class Message implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private Protocol messageType;
     private String content;
@@ -27,5 +31,9 @@ public class Message {
 
     public String getRecipient() {
         return recipient;
+    }
+
+    public String getSender() {
+        return sender;
     }
 }
