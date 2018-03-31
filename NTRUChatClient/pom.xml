@@ -11,5 +11,12 @@
 
     <artifactId>NTRUChat-Client</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>NTRUChat</groupId>
+            <artifactId>NTRUChat-Common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
 </project>

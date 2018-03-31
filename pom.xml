@@ -12,7 +12,7 @@
     <modules>
         <module>NTRUChatServer</module>
         <module>NTRUChatClient</module>
-        <module>NTRUChatLibrary</module>
+        <module>NTRUChatCommon</module>
     </modules>
     <build>
         <plugins>

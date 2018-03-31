@@ -21,7 +21,7 @@ public class ChatServer implements Runnable {
     private static final String DB_PATH = "D:\\studia\\RAOI\\NTRUChat\\" +
             "NTRUChat\\NTRUChatServer\\src\\main\\resources\\clientsDB.properties";
 
-    private ServerSocket serverSocket = null;
+    private ServerSocket serverSocket;
 
     private Map<String, ClientService> connectedClients;
 
