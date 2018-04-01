@@ -7,9 +7,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 /**
  * Created by Patryk on 30.03.2018.
@@ -43,14 +40,11 @@ public class ChatServer implements Runnable {
 
     @Override
     public void run() {
-        ExecutorService service = Executors.newFixedThreadPool(5);
         try {
             while (true) {
                 Socket client = serverSocket.accept();
                 logger.logMessage("New connection accepted");
-                service.execute(new ClientService(client, this));
-                //new Thread(new ClientService(client, this)).start();
-                System.out.println("jestem tu czekam na nowe");
+                new Thread(new ClientService(client, this)).start();
             }
         } catch (IOException e) {
             e.printStackTrace();

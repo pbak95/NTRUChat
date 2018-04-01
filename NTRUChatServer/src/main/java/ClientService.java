@@ -24,7 +24,6 @@ public class ClientService implements Runnable {
         this.clientSocket = clientSocket;
         this.server = server;
         logger = SimpleLogger.getInstance();
-        run();
     }
 
     @Override

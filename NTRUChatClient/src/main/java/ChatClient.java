@@ -31,10 +31,10 @@ public class ChatClient implements Runnable {
     private String clientID;
     private List<String> onlineFriends;
 
-    public ChatClient() {
+    public ChatClient(String tmpName) {
         logger = SimpleLogger.getInstance();
         initializeClient();
-        clientID = "Alice"; //temporary to test, default, read this from console while client starting
+        clientID = tmpName; //temporary to test, default, read this from console while client starting
         run();
     }
 
@@ -49,6 +49,8 @@ public class ChatClient implements Runnable {
                    writeMessage(new Message(Protocol.INFO_REGISTER, "", clientID, ""));
                 } else if (message.getMessageType().equals(Protocol.INFO_REGISTER_ACK)) {
                     updateOnlineFriends(message.getContent());
+                    logger.logMessage("Online friends of user " + clientID);
+                    onlineFriends.forEach(logger::logMessage);
                 } else if(message.getMessageType().equals(Protocol.ERROR_NO_SUCH_CLIENT_ID)) {
                     //TODO handle it
                     logger.logMessage(message.getContent());
@@ -111,6 +113,6 @@ public class ChatClient implements Runnable {
     }
 
     public static void main(String[] args) {
-        new ChatClient();
+        new ChatClient("Alice");
     }
 }
