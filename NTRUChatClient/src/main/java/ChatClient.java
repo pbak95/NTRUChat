@@ -1,3 +1,6 @@
+import com.securityinnovation.jNeo.NtruException;
+import com.securityinnovation.jNeo.OID;
+import com.securityinnovation.jNeo.Random;
 import communication.Message;
 import communication.Protocol;
 import logger.SimpleLogger;
@@ -33,8 +36,8 @@ public class ChatClient implements Runnable {
 
     public ChatClient(String tmpName) {
         logger = SimpleLogger.getInstance();
-        initializeClient();
         clientID = tmpName; //temporary to test, default, read this from console while client starting
+        initializeClient();
         run();
     }
 
@@ -51,6 +54,7 @@ public class ChatClient implements Runnable {
                     updateOnlineFriends(message.getContent());
                     logger.logMessage("Online friends of user " + clientID);
                     onlineFriends.forEach(logger::logMessage);
+                    writeMessage(new Message(Protocol.CONVERSATION, "", onlineFriends.get(0), "testmessageto "+ onlineFriends.get(0).toString()));
                 } else if(message.getMessageType().equals(Protocol.ERROR_NO_SUCH_CLIENT_ID)) {
                     //TODO handle it
                     logger.logMessage(message.getContent());
@@ -84,7 +88,19 @@ public class ChatClient implements Runnable {
             clientSocket = new Socket(HOST, SERVER_PORT);
             onlineFriends = new ArrayList<>();
             logger.logMessage("Client started");
+            setupNTRU();
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void setupNTRU() {
+        Random prng = NTRU.createSeededRandom();
+        OID oid = NTRU.parseOIDName("ees401ep1");
+        String dir = "NTRUChatClient\\src\\main\\java\\";
+        try {
+            NTRU.setupNtruEncryptKey(prng, oid,(dir+"pubKey"+clientID), (dir+"privKey"+clientID));
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -113,6 +129,6 @@ public class ChatClient implements Runnable {
     }
 
     public static void main(String[] args) {
-        new ChatClient("Alice");
+        new ChatClient(args[0]);
     }
 }
