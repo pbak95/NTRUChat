@@ -8,9 +8,9 @@ public enum Protocol {
     INFO_REGISTER, //initial message from client to register itself
     INFO_REGISTER_ACK,
     INFO_LOGOUT,
-    INIT_CONVERSATION, //get cipher parameters
-    INIT_CONVERSATION_ACK, //return cipher parameters
-    NEW_CONVERSATION, //new conversation with cipher parameters
+    SEND_PB_KEY,
+    REQUEST_SEND,
+    REQUEST_SEND_ACK,
     CONVERSATION, //basic conversation messages
     LIST_FRIENDS, //get online friends
     ERROR_MESSAGE_NOT_SENT,

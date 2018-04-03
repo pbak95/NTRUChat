@@ -26,9 +26,13 @@ public class ChatClient implements Runnable {
 
 
     private Socket clientSocket;
-    /** object to send */
+    /**
+     * object to send
+     */
     private ObjectOutputStream outputStream;
-    /** object to read */
+    /**
+     * object to read
+     */
     private ObjectInputStream inputStream;
     private SimpleLogger logger;
     private String clientID;
@@ -49,15 +53,18 @@ public class ChatClient implements Runnable {
             try {
                 Message message = (Message) inputStream.readObject();
                 if (message.getMessageType().equals(Protocol.INFO_CONNECTED)) {
-                   writeMessage(new Message(Protocol.INFO_REGISTER, "", clientID, ""));
+                    writeMessage(new Message(Protocol.INFO_REGISTER, "", clientID, ""));
                 } else if (message.getMessageType().equals(Protocol.INFO_REGISTER_ACK)) {
                     updateOnlineFriends(message.getContent());
                     logger.logMessage("Online friends of user " + clientID);
                     onlineFriends.forEach(logger::logMessage);
-                    writeMessage(new Message(Protocol.CONVERSATION, "", onlineFriends.get(0), "testmessageto "+ onlineFriends.get(0).toString()));
-                } else if(message.getMessageType().equals(Protocol.ERROR_NO_SUCH_CLIENT_ID)) {
+                } else if (message.getMessageType().equals(Protocol.ERROR_NO_SUCH_CLIENT_ID)) {
                     //TODO handle it
                     logger.logMessage(message.getContent());
+                } else if (message.getMessageType().equals(Protocol.REQUEST_SEND_ACK)) {
+                    //TODO save key for later use
+                } else if (message.getMessageType().equals(Protocol.CONVERSATION)) {
+                    //TODO decrypt message with private key and show in console
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -99,7 +106,7 @@ public class ChatClient implements Runnable {
         OID oid = NTRU.parseOIDName("ees401ep1");
         String dir = "NTRUChatClient\\src\\main\\java\\";
         try {
-            NTRU.setupNtruEncryptKey(prng, oid,(dir+"pubKey"+clientID), (dir+"privKey"+clientID));
+            NTRU.setupNtruEncryptKey(prng, oid, (dir + "pubKey" + clientID), (dir + "privKey" + clientID));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -113,16 +120,16 @@ public class ChatClient implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-      }
+    }
 
-      private void closeStreams() {
-          try {
-              inputStream.close();
-              outputStream.close();
-          } catch (IOException e) {
-              e.printStackTrace();
-          }
-      }
+    private void closeStreams() {
+        try {
+            inputStream.close();
+            outputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void consoleHandler() {
 

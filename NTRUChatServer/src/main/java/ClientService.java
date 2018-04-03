@@ -19,7 +19,6 @@ public class ClientService implements Runnable {
     private SimpleLogger logger;
 
 
-
     public ClientService(Socket clientSocket, ChatServer server) {
         this.clientSocket = clientSocket;
         this.server = server;
@@ -44,7 +43,14 @@ public class ClientService implements Runnable {
                         writeMessage(new Message(Protocol.INFO_REGISTER_ACK, message.getSender(), "",
                                 server.getClientFriends(message.getSender())));
                     }
+                } else if (message.getMessageType().equals(Protocol.SEND_PB_KEY)) {
+                    //TODO save public key to database/file smth
+                } else if (message.getMessageType().equals(Protocol.REQUEST_SEND)) {
+                    //TODO check if ok and send back pb key
+                    writeMessage(new Message(Protocol.REQUEST_SEND_ACK, message.getSender(), "",
+                            "TODOpbkey"));
                 } else if (message.getMessageType().equals(Protocol.CONVERSATION)) {
+                    //TODO forward message
                     boolean isSent = server.sendMessageToClient(message);
                     if (!isSent) {
                         writeMessage(new Message(Protocol.ERROR_MESSAGE_NOT_SENT, "", "",
