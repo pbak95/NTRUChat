@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 
 /**
  * Created by Patryk on 30.03.2018.
@@ -41,14 +42,20 @@ public class ClientService implements Runnable {
                                 "There is not client with such identifier"));
                     } else {
                         writeMessage(new Message(Protocol.INFO_REGISTER_ACK, message.getSender(), "",
-                                server.getClientFriends(message.getSender())));
+                               ""));
                     }
                 } else if (message.getMessageType().equals(Protocol.SEND_PB_KEY)) {
-                    //TODO save public key to database/file smth
+                    if (message.getKey() != null) {
+                        server.savePbKey(message.getSender(),message.getKey());
+                    }
                 } else if (message.getMessageType().equals(Protocol.REQUEST_SEND)) {
                     //TODO check if ok and send back pb key
-                    writeMessage(new Message(Protocol.REQUEST_SEND_ACK, message.getSender(), "",
-                            "TODOpbkey"));
+                    ArrayList<String> temp = server.getClientFriends(message.getSender());
+                    if(temp.contains(message.getRecipient())) {
+                        Message response = new Message(Protocol.REQUEST_SEND_ACK, message.getSender(), message.getRecipient(),"");
+                        response.setKey(server.getPbKey(message.getRecipient()));
+                        writeMessage(response);
+                    }
                 } else if (message.getMessageType().equals(Protocol.CONVERSATION)) {
                     //TODO forward message
                     boolean isSent = server.sendMessageToClient(message);

@@ -11,6 +11,7 @@ public class Message implements Serializable {
 
     private Protocol messageType;
     private String content;
+    private byte[] key;
     private String recipient;
     private String sender;
 
@@ -35,5 +36,13 @@ public class Message implements Serializable {
 
     public String getSender() {
         return sender;
+    }
+
+    public byte[] getKey() {
+        return key;
+    }
+
+    public void setKey(byte[] key) {
+        this.key = key;
     }
 }

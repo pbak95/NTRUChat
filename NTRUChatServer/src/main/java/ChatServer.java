@@ -2,9 +2,11 @@ import communication.Message;
 import logger.SimpleLogger;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,7 +23,7 @@ public class ChatServer implements Runnable {
     private ServerSocket serverSocket;
 
     private Map<String, ClientService> connectedClients;
-
+    private Properties properties;
     /*
         this is in memory database, first key is clientID(user), map associated with this key is
         <friendID(user's friend), status(online or not)>
@@ -79,12 +81,12 @@ public class ChatServer implements Runnable {
     /*
         get online friends with which requesting client could chat
      */
-    public synchronized String getClientFriends(String clientID) {
-        String friendsList = "";
+    public synchronized ArrayList<String> getClientFriends(String clientID) {
+        ArrayList<String> friendsList = new ArrayList<>();
         Map<String, Boolean> friends = inMemoryDatabase.get(clientID);
         for(Map.Entry<String, Boolean> entry : friends.entrySet()) {
             if (entry.getValue())
-                friendsList += entry.getKey() + "\\|";
+                friendsList.add(entry.getKey());
         }
         return friendsList;
     }
@@ -109,26 +111,41 @@ public class ChatServer implements Runnable {
     }
 
     private void initializeClients() {
-        Properties properties = new Properties();
+        properties = new Properties();
         try {
             properties.load(new FileInputStream(DB_PATH));
         } catch (IOException e) {
             e.printStackTrace();
         }
         properties.forEach((client, value) -> {
-            String[] clientProperty = client.toString().split("\\.");
-            String[] friendsProperty = value.toString().split("\\|");
-            Map<String, Boolean> fiendsToDB = new HashMap<>();
-            for (int i = 0; i < friendsProperty.length; i++) {
-                fiendsToDB.put(friendsProperty[i], false);
+            if(!client.toString().startsWith("pbkey")) {
+                String[] clientProperty = client.toString().split("\\.");
+                String[] friendsProperty = value.toString().split("\\|");
+                Map<String, Boolean> fiendsToDB = new HashMap<>();
+                for (int i = 0; i < friendsProperty.length; i++) {
+                    fiendsToDB.put(friendsProperty[i], false);
+                }
+                //last string from clientProperty is ID
+                inMemoryDatabase.put(clientProperty[clientProperty.length - 1], fiendsToDB);
             }
-            //last string from clientProperty is ID
-            inMemoryDatabase.put(clientProperty[clientProperty.length - 1], fiendsToDB);
         });
 
     }
 
     public static void main(String args[]) {
         new ChatServer();
+    }
+
+    public void savePbKey(String sender, byte[] key) {
+        properties.setProperty("pbkey"+sender,new String(key));
+        try {
+            properties.store(new FileOutputStream(DB_PATH),"");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public byte[] getPbKey(String client) {
+        return properties.getProperty("pbkey"+client).getBytes(StandardCharsets.UTF_8);
     }
 }
