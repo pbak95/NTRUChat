@@ -10,12 +10,12 @@ public class Message implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Protocol messageType;
-    private String content;
+    private byte[] content;
     private byte[] key;
     private String recipient;
     private String sender;
 
-    public Message(Protocol messageType, String recipient, String sender, String content) {
+    public Message(Protocol messageType, String recipient, String sender, byte[] content) {
         this.messageType = messageType;
         this.content = content;
         this.recipient = recipient;
@@ -26,7 +26,7 @@ public class Message implements Serializable {
         return messageType;
     }
 
-    public String getContent() {
+    public byte[] getContent() {
         return content;
     }
 

@@ -1,6 +1,5 @@
-import com.securityinnovation.jNeo.NtruException;
-import com.securityinnovation.jNeo.OID;
-import com.securityinnovation.jNeo.Random;
+import com.securityinnovation.jNeo.*;
+import com.securityinnovation.jNeo.ntruencrypt.NtruEncryptKey;
 import communication.Message;
 import communication.Protocol;
 import logger.SimpleLogger;
@@ -39,6 +38,7 @@ public class ChatClient implements Runnable {
     private List<String> onlineFriends;
     private boolean started = false;
     private String conversationID;
+    private NtruEncryptKey currentPbKey;
 
     public ChatClient(String tmpName) {
         logger = SimpleLogger.getInstance();
@@ -57,13 +57,13 @@ public class ChatClient implements Runnable {
             try {
                 Message message = (Message) inputStream.readObject();
                 if (message.getMessageType().equals(Protocol.INFO_CONNECTED)) {
-                    writeMessage(new Message(Protocol.INFO_REGISTER, "", clientID, ""));
+                    writeMessage(new Message(Protocol.INFO_REGISTER, "", clientID, null));
                 } else if (message.getMessageType().equals(Protocol.INFO_REGISTER_ACK)) {
-                    updateOnlineFriends(message.getContent());
+                    //updateOnlineFriends(message.getContent());
                     logger.logMessage("Online friends of user " + clientID);
                     onlineFriends.forEach(logger::logMessage);
                     try {
-                        Message response = new Message(Protocol.SEND_PB_KEY, "", clientID, "");
+                        Message response = new Message(Protocol.SEND_PB_KEY, "", clientID, null);
                         response.setKey(NTRU.loadKey(dir + "pubKey" + clientID).getPubKey());
                         writeMessage(response);
                     } catch (NtruException e) {
@@ -71,24 +71,28 @@ public class ChatClient implements Runnable {
                     }
                 } else if (message.getMessageType().equals(Protocol.ERROR_NO_SUCH_CLIENT_ID)) {
                     //TODO handle it
-                    logger.logMessage(message.getContent());
+                    //logger.logMessage(message.getContent());
                 } else if (message.getMessageType().equals(Protocol.REQUEST_SEND_ACK)) {
                     //TODO save key for later use
                     if(message.getKey() != null) {
                         logger.logMessage("received: "+new String(message.getKey()));
                         started = true;
                         conversationID = message.getSender();
+                        try {
+                            currentPbKey = new NtruEncryptKey(message.getKey());
+                        } catch (Exception e) {
+                            logger.logMessage(e.getMessage());
+                        }
                         logger.logMessage("Please type in message content");
                     } else {
                         logger.logMessage("Unable to start conversation, client not exist or not connected");
                     }
                 } else if (message.getMessageType().equals(Protocol.CONVERSATION)) {
-                    //TODO decrypt message with private key
                     logger.logMessage("Received from: "+message.getSender()+" message: "+message.getContent());
+                    byte[] decrypted = NTRU.decryptMessage(NTRU.loadKey(dir+"privKey"+clientID),message.getContent());
+                    logger.logMessage("Decrypted: "+new String(decrypted));
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -160,11 +164,13 @@ public class ChatClient implements Runnable {
                         String input = scanner.next();
                         if(started && conversationID != null) {
                             //TODO encrypt
-                            writeMessage(new Message(Protocol.CONVERSATION, conversationID, clientID, input));
+                            Random random = NTRU.createSeededRandom();
+                            byte[] encrypted = NTRU.encryptMessage(currentPbKey, random, input.getBytes());
+                            writeMessage(new Message(Protocol.CONVERSATION, conversationID, clientID, encrypted));
                         }
                         else {
                             logger.logMessage("Select client to send message");
-                            writeMessage(new Message(Protocol.REQUEST_SEND, input, clientID, ""));
+                            writeMessage(new Message(Protocol.REQUEST_SEND, input, clientID, null));
                         }
                     } catch(Exception e) {
                         e.printStackTrace();

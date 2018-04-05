@@ -62,7 +62,7 @@ public class ChatServer implements Runnable {
     }
 
     public synchronized void logout(Message message) {
-        String clientID = message.getContent();
+        String clientID = new String(message.getContent());
         if (inMemoryDatabase.keySet().contains(clientID)) {
             connectedClients.remove(clientID);
             setClientStatus(clientID, false);
@@ -137,7 +137,7 @@ public class ChatServer implements Runnable {
     }
 
     public void savePbKey(String sender, byte[] key) {
-        properties.setProperty("pbkey"+sender,new String(key));
+        properties.setProperty("pbkey"+sender,Base64.getEncoder().encodeToString(key));
         try {
             properties.store(new FileOutputStream(DB_PATH),"");
         } catch (Exception e) {
@@ -146,6 +146,7 @@ public class ChatServer implements Runnable {
     }
 
     public byte[] getPbKey(String client) {
-        return properties.getProperty("pbkey"+client).getBytes(StandardCharsets.UTF_8);
+        String prop = properties.getProperty("pbkey"+client);
+        return Base64.getDecoder().decode(prop.getBytes());
     }
 }

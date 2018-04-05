@@ -30,7 +30,7 @@ public class ClientService implements Runnable {
     public void run() {
         initializeStreams();
         logger.logMessage("New ClientService running");
-        writeMessage(new Message(Protocol.INFO_CONNECTED, "", "", ""));
+        writeMessage(new Message(Protocol.INFO_CONNECTED, "", "", null));
         while (true) {
             try {
                 Message message = (Message) inputStream.readObject();
@@ -39,20 +39,18 @@ public class ClientService implements Runnable {
                     boolean isConnected = server.connectClient(message.getSender(), this);
                     if (!isConnected) {
                         writeMessage(new Message(Protocol.ERROR_NO_SUCH_CLIENT_ID, "", "",
-                                "There is not client with such identifier"));
+                                ("There is not client with such identifier").getBytes()));
                     } else {
                         writeMessage(new Message(Protocol.INFO_REGISTER_ACK, message.getSender(), "",
-                               ""));
+                               null));
                     }
                 } else if (message.getMessageType().equals(Protocol.SEND_PB_KEY)) {
                     if (message.getKey() != null) {
                         server.savePbKey(message.getSender(),message.getKey());
                     }
                 } else if (message.getMessageType().equals(Protocol.REQUEST_SEND)) {
-                    //TODO check if ok and send back pb key
-                    ArrayList<String> temp = server.getClientFriends(message.getSender());
-                    if(temp.contains(message.getRecipient())) {
-                        Message response = new Message(Protocol.REQUEST_SEND_ACK, message.getSender(), message.getRecipient(),"");
+                    if(server.getClientFriends(message.getSender()).contains(message.getRecipient())) {
+                        Message response = new Message(Protocol.REQUEST_SEND_ACK, message.getSender(), message.getRecipient(),null);
                         response.setKey(server.getPbKey(message.getRecipient()));
                         writeMessage(response);
                     }
@@ -61,7 +59,7 @@ public class ClientService implements Runnable {
                     boolean isSent = server.sendMessageToClient(message);
                     if (!isSent) {
                         writeMessage(new Message(Protocol.ERROR_MESSAGE_NOT_SENT, "", "",
-                                "Message not sent, your friend is offline"));
+                                ("Message not sent, your friend is offline").getBytes()));
                     }
                 } else if (message.getMessageType().equals(Protocol.INFO_LOGOUT)) {
                     server.logout(message);

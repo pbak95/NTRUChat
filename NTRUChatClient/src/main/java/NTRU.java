@@ -19,9 +19,7 @@
  *
  *********************************************************************************/
 
-import com.securityinnovation.jNeo.NtruException;
-import com.securityinnovation.jNeo.OID;
-import com.securityinnovation.jNeo.Random;
+import com.securityinnovation.jNeo.*;
 import com.securityinnovation.jNeo.ntruencrypt.NtruEncryptKey;
 
 import javax.crypto.Cipher;
@@ -341,5 +339,34 @@ public class NTRU
         }
         else
           usage();
+    }
+
+    public static byte[] encryptMessage(NtruEncryptKey ntruKey, Random prng, byte[] buf) {
+        String ret = null;
+
+        byte encryptedBuf[] = null;
+        try
+        {
+            System.out.println("Message: "+buf);
+            encryptedBuf = ntruKey.encrypt(buf, prng);
+            System.out.println("Message wrapped by NTRU: "+encryptedBuf);
+            ret = new String(encryptedBuf);
+
+        } catch (PlaintextBadLengthException e) {
+            e.printStackTrace();
+        } catch (ObjectClosedException e) {
+            e.printStackTrace();
+        }
+        return encryptedBuf;
+    }
+
+    public static byte[] decryptMessage(NtruEncryptKey ntruKey, byte[] input) {
+        byte[] ret = null;
+        try {
+            ret = ntruKey.decrypt(input);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ret;
     }
 }
