@@ -88,7 +88,7 @@ public class ChatClient implements Runnable {
                         logger.logMessage("Unable to start conversation, client not exist or not connected");
                     }
                 } else if (message.getMessageType().equals(Protocol.CONVERSATION)) {
-                    logger.logMessage("Received from: "+message.getSender()+" message: "+message.getContent());
+                    logger.logMessage("Received from: "+message.getSender()+" message: "+new String(message.getContent()));
                     byte[] decrypted = NTRU.decryptMessage(NTRU.loadKey(dir+"privKey"+clientID),message.getContent());
                     logger.logMessage("Decrypted: "+new String(decrypted));
                 }
@@ -100,7 +100,7 @@ public class ChatClient implements Runnable {
 
     public void writeMessage(Message message) {
         try {
-            logger.logMessage("Protocol: "+message.getMessageType()+" Sender: " + message.getSender() + " Recipient " + message.getRecipient()+" Content: "+message.getContent());
+            logger.logMessage("Protocol: "+message.getMessageType()+" Sender: " + message.getSender() + " Recipient " + message.getRecipient());
             outputStream.reset();
             outputStream.writeObject(message);
             outputStream.flush();

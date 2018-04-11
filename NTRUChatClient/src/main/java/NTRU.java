@@ -347,9 +347,9 @@ public class NTRU
         byte encryptedBuf[] = null;
         try
         {
-            System.out.println("Message: "+buf);
+            System.out.println("Message: "+new String(buf));
             encryptedBuf = ntruKey.encrypt(buf, prng);
-            System.out.println("Message wrapped by NTRU: "+encryptedBuf);
+            System.out.println("Message wrapped by NTRU: "+new String(encryptedBuf));
             ret = new String(encryptedBuf);
 
         } catch (PlaintextBadLengthException e) {
