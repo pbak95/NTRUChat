@@ -161,7 +161,7 @@ public class ChatClient implements Runnable {
             public void run() {
                 while(!Thread.currentThread().isInterrupted()) {
                     try {
-                        String input = scanner.next();
+                        String input = scanner.nextLine();
                         if(started && conversationID != null) {
                             //TODO encrypt
                             Random random = NTRU.createSeededRandom();
